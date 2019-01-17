@@ -3,11 +3,11 @@ TARGET   = testes.out
 
 CC       = gcc
 # compiling flags here
-CFLAGS   = -lm -I.
+CFLAGS   = -lm -I. -g
 
 LINKER   = gcc
 # linking flags here
-LFLAGS   = -I. -lm
+LFLAGS   = -I. -lm -g
 
 SOURCES  := $(shell find . -type f -name "*.c")
 INCLUDES := $(shell find . -type f -name "*.h")

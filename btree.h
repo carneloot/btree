@@ -29,5 +29,10 @@ void bt_traverse(BTree_t this, void (*callback)(void *item, void *user_data), vo
  */
 void *bt_search(BTree_t this, double chave);
 
+/**
+ * Insere o valor na arvore this usando a chave chave
+ */
+void *bt_insert(BTree_t this, double chave, void *valor);
+
 
 #endif /* __BTREE_H__ */
