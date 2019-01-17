@@ -6,7 +6,7 @@
 
 /** Par chave / item */
 struct BTreePair_t {
-  char *chave;
+  double chave;
   void *valor;
 };
 
@@ -53,9 +53,8 @@ static void __destroy_node(BTreeNode_t this, void *_destruir_item) {
 
   int tam = 2 * this->grau - 1;
   for (int i = 0; i < tam; i++) {
-    if (this->chaves == NULL) break;
+    if (this->chaves[i] == NULL) break;
 
-    free(this->chaves[i]->chave);
     if (destruir_item)
       free(this->chaves[i]->valor);
 
@@ -82,15 +81,15 @@ static void __traverse_node(BTreeNode_t this, void (*callback)(void *item, void 
 
 }
 
-static void *__search_node(BTreeNode_t this, char *chave) {
+static void *__search_node(BTreeNode_t this, double chave) {
   int i = 0;
 
   // Percorre ate achar a chave "maior" que a passada
-  while (i < this->numero_filhos && strcmp(this->chaves[i]->chave, chave) > 0)
+  while (i < this->numero_filhos && this->chaves[i]->chave < chave)
     i++;
 
   // Se a chave for igual, retorna o valor atual
-  if (strcmp(this->chaves[i]->chave, chave) == 0)
+  if (this->chaves[i]->chave == chave)
     return this->chaves[i]->valor;
   
   // Se chegou numa folha, quer dizer que nao achou o item
@@ -131,7 +130,7 @@ void bt_traverse(BTree_t _this, void (*callback)(void *item, void *user_data), v
   }
 }
 
-void *bt_search(BTree_t _this, char *chave) {
+void *bt_search(BTree_t _this, double chave) {
   struct BTree_t * this = (struct BTree_t *) _this;
 
   if (this->root == NULL)

@@ -27,7 +27,7 @@ void bt_traverse(BTree_t this, void (*callback)(void *item, void *user_data), vo
  * Procura por um item com chave chave.
  * Se encontrado, retorna esse item
  */
-void *bt_search(BTree_t this, char *chave);
+void *bt_search(BTree_t this, double chave);
 
 
 #endif /* __BTREE_H__ */
