@@ -46,8 +46,9 @@ static BTreeNode_t __create_node(int grau, bool folha) {
 static void __destroy_node(BTreeNode_t this, void *_destruir_item) {
   void (*destruir_item)(void *item) = (void (*)(void *)) _destruir_item;
 
-  for (int i = 0; i < this->numero_filhos; i++)
-    __destroy_node(this->filhos[i], destruir_item);
+  if (this->folha == false)
+    for (int i = 0; i < this->numero_filhos; i++)
+      __destroy_node(this->filhos[i], destruir_item);
 
   free(this->filhos);
 
@@ -56,7 +57,7 @@ static void __destroy_node(BTreeNode_t this, void *_destruir_item) {
     if (this->chaves[i] == NULL) break;
 
     if (destruir_item)
-      free(this->chaves[i]->valor);
+      destruir_item(this->chaves[i]->valor);
 
     free(this->chaves[i]);
   }
@@ -167,7 +168,7 @@ static void __insert_non_full_node(BTreeNode_t this, double chave, void *valor) 
     }
 
     // Inserir o valor no local encontrado
-    this->chaves[i + 1] = malloc(sizeof(BTreePair_t));
+    this->chaves[i + 1] = malloc(sizeof(*this->chaves[i + 1]));
     this->chaves[i + 1]->chave = chave;
     this->chaves[i + 1]->valor = valor;
     this->numero_filhos++;
@@ -203,11 +204,13 @@ BTree_t bt_create(int grau) {
   return this;  
 }
 
-// TODO: Passar por tudo destruindo
 void bt_destroy(BTree_t _this, void (*destruir_item)(void *item)) {
   struct BTree_t * this = (struct BTree_t *) _this;
 
+  // Se a arvore nao ta vazia
   if (this->root != NULL) {
+
+    __destroy_node(this->root, destruir_item);
 
   }
   
@@ -237,7 +240,7 @@ void *bt_insert(BTree_t _this, double chave, void *valor) {
   // Se a arvore estiver vazia
   if (this->root == NULL) {
     this->root = __create_node(this->grau, true);
-    this->root->chaves[0] = malloc(sizeof(BTreePair_t));
+    this->root->chaves[0] = malloc(sizeof(*this->root->chaves[0]));
     this->root->chaves[0]->chave = chave;
     this->root->chaves[0]->valor = valor;
     this->root->numero_filhos = 1;
