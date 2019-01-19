@@ -18,6 +18,7 @@ BTreeNode_t create_node(int grau, bool folha) {
 }
 
 void destroy_node(BTreeNode_t this, void *_destruir_item) {
+  return;
   void (*destruir_item)(void *item) = (void (*)(void *)) _destruir_item;
 
   if (this->folha == false)
