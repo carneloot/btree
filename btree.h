@@ -1,6 +1,8 @@
 #ifndef __BTREE_H__
 #define __BTREE_H__
 
+#include <stdbool.h>
+
 /**
  * Tipo que representa uma Arvore B
  */
@@ -38,5 +40,11 @@ void *bt_insert(BTree_t this, double chave, void *valor);
  * Remove o valor representado por chave na arvoce
  */
 void *bt_remove(BTree_t this, double chave);
+
+/**
+ * Retorna 1 se a árvore estiver vazia
+ * 0, caso contrário
+ */
+bool bt_is_empty(BTree_t this);
 
 #endif /* __BTREE_H__ */

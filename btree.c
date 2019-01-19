@@ -1,6 +1,5 @@
 #include "btree.h"
 
-#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -120,4 +119,9 @@ void *bt_remove(BTree_t _this, double chave) {
   }
   
   return retorno;
+}
+
+bool bt_is_empty(BTree_t _this) {
+  struct BTree_t * this = (struct BTree_t *) _this;
+  return (this->root == NULL);
 }
