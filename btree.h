@@ -34,5 +34,9 @@ void *bt_search(BTree_t this, double chave);
  */
 void *bt_insert(BTree_t this, double chave, void *valor);
 
+/**
+ * Remove o valor representado por chave na arvoce
+ */
+void *bt_remove(BTree_t this, double chave);
 
 #endif /* __BTREE_H__ */

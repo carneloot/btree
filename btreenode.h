@@ -44,4 +44,54 @@ void split_child_node(BTreeNode_t this, int indice, BTreeNode_t child);
  */
 void insert_non_full_node(BTreeNode_t this, double chave, void *valor);
 
+/**
+ * Funcao que retorna o indice da primeira chave maior que a chave passada
+ */
+int find_key_node(BTreeNode_t this, double chave);
+
+/**
+ * Um container para a remocao da chave chave
+ */
+void *remove_node(BTreeNode_t this, double chave);
+
+/**
+ * Remove a chave presente no indice de um no folha
+ */
+void *remove_from_leaf_node(BTreeNode_t this, int indice);
+
+/**
+ * Remove a chave presente no indice de um no nao folha
+ */
+void *remove_from_non_leaf_node(BTreeNode_t this, int indice);
+
+/**
+ * Pega o predecessor do indice
+ */
+BTreePair_t get_predecessor_node(BTreeNode_t this, int indice);
+
+/**
+ * Pega o sucessor do indice
+ */
+BTreePair_t get_successor_node(BTreeNode_t this, int indice);
+
+/**
+ * Preenche o filho no indice se o filho tem menos que grau - 1 itens
+ */
+void fill_node(BTreeNode_t this, int indice);
+
+/**
+ * Empreta a chave do anterior
+ */
+void borrow_from_prev_node(BTreeNode_t this, int indice);
+
+/**
+ * Empreta a chave do proximo
+ */
+void borrow_from_next_node(BTreeNode_t this, int indice);
+
+/**
+ * Junta os filhos do indice com os do (indice + 1)
+ */
+void merge_node(BTreeNode_t this, int indice);
+
 #endif /* __BTREENODE_H__ */

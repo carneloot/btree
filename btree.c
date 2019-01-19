@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "btreenode.h"
@@ -95,4 +96,28 @@ void *bt_insert(BTree_t _this, double chave, void *valor) {
     else 
       insert_non_full_node(this->root, chave, valor);
   }
+}
+
+void *bt_remove(BTree_t _this, double chave) {
+  struct BTree_t *this = (struct BTree_t *) _this;
+
+  if (this->root == NULL) {
+    printf("A arvore esta vazia.\n");
+    return NULL;
+  }
+
+  void *retorno = remove_node(this->root, chave);
+
+  if (this->root->numero_filhos == 0) {
+    BTreeNode_t tmp = this->root;
+
+    if (this->root->folha)
+      this->root = NULL;
+    else
+      this->root = this->root->filhos[0];
+
+    destroy_node(tmp, NULL);
+  }
+  
+  return retorno;
 }
