@@ -2,6 +2,7 @@
 #define __BTREENODE_H__
 
 #include <stdbool.h>
+#include "lista.h"
 
 /** Par chave / item */
 struct BTreePair_t {
@@ -99,6 +100,8 @@ void merge_node(BTreeNode_t this, int indice);
  *  0 -> min < chave < max
  *  1 -> max < chave
  */
-int intervalo_chave(char chave , char *chave_min, char *chave_max, int (*compare)(void *this, void *other));
+int intervalo_chave(char *chave , char *chave_min, char *chave_max, int (*compare)(void *this, void *other));
+
+void range_search_recursive(BTreeNode_t node, char *chave_min, char *chave_max, Lista_t lista);
 
 #endif /* __BTREENODE_H__ */

@@ -414,3 +414,18 @@ void range_search_recursive(BTreeNode_t node, char *chave_min, char *chave_max, 
   }
     
 }
+
+int intervalo_chave(char *chave , char *chave_min, char *chave_max, int (*compare)(void *this, void *other)){
+  if(compare(chave, chave_min) == -1){
+    // Chave é menor que mínimo
+    return -1;
+  }
+  else{
+    if( compare(chave, chave_max) == 1){
+      // Chave é maior que max
+      return 1;
+    }
+    // Chave está entre os dois
+    return 0;
+  }
+}
