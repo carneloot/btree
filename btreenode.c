@@ -180,8 +180,6 @@ void *remove_node(BTreeNode_t this, double chave) {
       return remove_from_leaf_node(this, indice);
     else
       return remove_from_non_leaf_node(this, indice);
-
-    return NULL;
   }
 
   // Se nao estiver nesse no, procurar nos filhos
@@ -189,12 +187,12 @@ void *remove_node(BTreeNode_t this, double chave) {
 
     // Se for uma folha, entao o item nao existe
     if (this->folha) {
-      printf("A chave %.2f nao existe na arvore.\n", chave);
+      printf("A chave %f nao existe na arvore.\n", chave);
       return NULL;
     }
 
     // A flag indice se o item esta no ultimo filho desse no
-    bool flag = ( indice == this->numero_filhos );
+    bool flag = ( indice == this->numero_filhos ) ? true : false;
 
     // Se o filho que o valor supostamente esta tem menos que o grau minimo, tem que preencher ele
     if (this->filhos[indice]->numero_filhos < this->grau)
@@ -203,11 +201,9 @@ void *remove_node(BTreeNode_t this, double chave) {
     if (flag && indice > this->numero_filhos)
       return remove_node(this->filhos[indice - 1], chave);
     else
-      return remove_node(this->filhos[indice], chave);
+      return remove_node(this->filhos[indice],     chave);
     
-    return NULL;
   }
-  return NULL;
 
 }
 
@@ -246,8 +242,6 @@ void *remove_from_non_leaf_node(BTreeNode_t this, int indice) {
     merge_node(this, indice);
     return remove_node(this->filhos[indice], chave);
   }
-
-  return NULL;
 }
 
 BTreePair_t get_predecessor_node(BTreeNode_t this, int indice) {
@@ -262,7 +256,7 @@ BTreePair_t get_predecessor_node(BTreeNode_t this, int indice) {
 
 BTreePair_t get_successor_node(BTreeNode_t this, int indice) {
   // Sempre pega o primeiro dos filhos até chegar numa folha
-  BTreeNode_t cur = this->filhos[indice - 1];
+  BTreeNode_t cur = this->filhos[indice + 1];
   while (cur->folha == false)
     cur = cur->filhos[0];
 
@@ -271,10 +265,13 @@ BTreePair_t get_successor_node(BTreeNode_t this, int indice) {
 }
 
 void fill_node(BTreeNode_t this, int indice) {
+
   if (indice != 0 && this->filhos[indice - 1]->numero_filhos >= this->grau)
     borrow_from_prev_node(this, indice);
-  else if (indice == this->numero_filhos && this->filhos[indice + 1]->numero_filhos >= this->grau)
+
+  else if (indice != this->numero_filhos && this->filhos[indice + 1]->numero_filhos >= this->grau)
     borrow_from_next_node(this, indice);
+
   else {
     if (indice != this->numero_filhos)
       merge_node(this, indice);
@@ -318,11 +315,11 @@ void borrow_from_next_node(BTreeNode_t this, int indice) {
 
   this->chaves[indice] = irmao->chaves[0];
 
-  for (int i = 0; i < irmao->numero_filhos; i++)
+  for (int i = 1; i < irmao->numero_filhos; i++)
     irmao->chaves[i - 1] = irmao->chaves[i];
 
   if (irmao->folha == false)
-    for (int i = 0; i <= irmao->numero_filhos; i++)
+    for (int i = 1; i <= irmao->numero_filhos; i++)
       irmao->filhos[i - 1] = irmao->filhos[i];
 
   filho->numero_filhos += 1;
