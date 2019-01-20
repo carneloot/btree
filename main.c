@@ -1,7 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "btree.h"
+
+int compare(void *this, void *other) {
+  return strcmp((const char *) this, (const char *) other);
+}
 
 void callback(void *valor, void *user_data) {
   printf("%.0f ", * (double *) valor);
@@ -22,7 +27,7 @@ void removeTeste(BTree_t tree, char *num) {
 
 int main(int argc, char *argv[]) {
 
-  BTree_t tree = bt_create(3);
+  BTree_t tree = bt_create(3, compare);
 
   inserirNum(tree, "1"); 
   inserirNum(tree, "3"); 

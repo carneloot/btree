@@ -9,15 +9,18 @@
 struct BTree_t {
   BTreeNode_t root; // No raiz da arvore
   int grau;         // Grau da arvore
+  int (*compare)(void *this, void *other); // Funcao para comparar as chaves
 };
 
 /* =========== FUNCOES ARVORE =========== */
 
-BTree_t bt_create(int grau) {
+BTree_t bt_create(int grau, int (*compare)(void *this, void *other)) {
   struct BTree_t *this = calloc(1, sizeof(*this));
 
   this->root = NULL;
   this->grau = grau;
+
+  this->compare = compare;
 
   return this;  
 }
@@ -57,7 +60,7 @@ void *bt_insert(BTree_t _this, char *chave, void *valor) {
 
   // Se a arvore estiver vazia
   if (this->root == NULL) {
-    this->root = create_node(this->grau, true);
+    this->root = create_node(this->grau, true, this->compare);
     this->root->chaves[0] = malloc(sizeof(*this->root->chaves[0]));
     this->root->chaves[0]->chave = chave;
     this->root->chaves[0]->valor = valor;
@@ -71,7 +74,7 @@ void *bt_insert(BTree_t _this, char *chave, void *valor) {
     if (is_full_node(this->root)) {
       
       // Criando espaco pra nova raiz
-      BTreeNode_t nova_raiz = create_node(this->grau, false);
+      BTreeNode_t nova_raiz = create_node(this->grau, false, this->compare);
 
       // Fazer a raiz antiga filha da nova
       nova_raiz->filhos[0] = this->root;

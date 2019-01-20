@@ -4,11 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-BTreeNode_t create_node(int grau, bool folha) {
+BTreeNode_t create_node(int grau, bool folha, int (*compare)(void *this, void *other)) {
   BTreeNode_t this = (BTreeNode_t) calloc(1, sizeof(*this));
 
   this->grau  = grau;
   this->folha = folha;
+
+  this->compare = compare;
 
   this->chaves = (BTreePair_t *) calloc(2 * grau - 1, sizeof(*this->chaves));
   this->filhos = (BTreeNode_t *) calloc(2 * grau,     sizeof(*this->filhos));
@@ -66,11 +68,11 @@ void *search_node(BTreeNode_t this, char *chave) {
   int i = 0;
 
   // Percorre ate achar a chave "maior" que a passada
-  while (i < this->numero_filhos && strcmp(chave, this->chaves[i]->chave) > 0)
+  while (i < this->numero_filhos && this->compare(this->chaves[i]->chave, chave) > 0)
     i++;
 
   // Se a chave for igual, retorna o valor atual
-  if (this->chaves[i] && strcmp(this->chaves[i]->chave, chave) == 0)
+  if (this->chaves[i] && this->compare(this->chaves[i]->chave, chave) == 0)
     return this->chaves[i]->valor;
   
   // Se chegou numa folha, quer dizer que nao achou o item
@@ -84,7 +86,7 @@ void *search_node(BTreeNode_t this, char *chave) {
 void split_child_node(BTreeNode_t this, int indice, BTreeNode_t child) {
 
   // Cria um novo no que vai guardar this->grau - 1 valores
-  BTreeNode_t novo_node = create_node(child->grau, child->folha);
+  BTreeNode_t novo_node = create_node(child->grau, child->folha, this->compare);
   novo_node->numero_filhos = this->grau - 1;
 
   // Copia os ultimos this->grau - 1 valores de child para novo_node
@@ -130,7 +132,7 @@ void insert_non_full_node(BTreeNode_t this, char *chave, void *valor) {
 
     // Achar o lugar a ser inserido o novo item
     // E mover todos os de valor maior pra frente
-    while (i >= 0 && strcmp(this->chaves[i]->chave, chave) > 0) {
+    while (i >= 0 && this->compare(this->chaves[i]->chave, chave) > 0) {
       this->chaves[i + 1] = this->chaves[i];
       i--;
     }
@@ -145,7 +147,7 @@ void insert_non_full_node(BTreeNode_t this, char *chave, void *valor) {
   // Se nao for uma folha
   else {
     // Achar o filho que tem que ter o novo valor
-    while (i >= 0 && strcmp(this->chaves[i]->chave, chave) > 0)
+    while (i >= 0 && this->compare(this->chaves[i]->chave, chave) > 0)
       i--;
     
     // Se o filho estiver cheio
@@ -154,7 +156,7 @@ void insert_non_full_node(BTreeNode_t this, char *chave, void *valor) {
 
       // Depois de mudar, o no vai ser separado em dois
       // Tem que achar em qual dos dois vai o novo valor
-      if (strcmp(this->chaves[i + 1]->chave, chave) < 0)
+      if (this->compare(this->chaves[i + 1]->chave, chave) < 0)
         i++;
     }
     insert_non_full_node(this->filhos[i + 1], chave, valor);
@@ -164,7 +166,7 @@ void insert_non_full_node(BTreeNode_t this, char *chave, void *valor) {
 int find_key_node(BTreeNode_t this, char *chave) {
   int indice = 0;
   while (indice < this->numero_filhos &&
-    strcmp(this->chaves[indice]->chave, chave) < 0)
+    this->compare(this->chaves[indice]->chave, chave) < 0)
     indice++;
 
   return indice;
@@ -175,7 +177,7 @@ void *remove_node(BTreeNode_t this, char *chave) {
 
   // Se a chave estiver nesse no
   if (indice < this->numero_filhos &&
-    strcmp(this->chaves[indice]->chave, chave) == 0) {
+    this->compare(this->chaves[indice]->chave, chave) == 0) {
     
     if (this->folha)
       return remove_from_leaf_node(this, indice);

@@ -17,12 +17,12 @@ struct BTreeNode_t {
   struct BTreeNode_t **filhos; // Um vetor de filhos
   int numero_filhos;           // Numero atual de filhos
   bool folha;                  // Determina se o no eh uma folha ou nao
+  int (*compare)(void *this, void *other); // Funcao para comparar as chaves
 };
 
 typedef struct BTreeNode_t *BTreeNode_t;
 
-
-BTreeNode_t create_node(int grau, bool folha);
+BTreeNode_t create_node(int grau, bool folha, int (*compare)(void *this, void *other));
 
 void destroy_node(BTreeNode_t this, void *_destruir_item);
 

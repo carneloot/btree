@@ -11,7 +11,7 @@ typedef void *BTree_t;
 /**
  * Retorna uma nova BTree vazia de grau grau
  */
-BTree_t bt_create(int grau);
+BTree_t bt_create(int grau, int (*compare)(void *this, void *other));
 
 /**
  * Destroi a BTree.
