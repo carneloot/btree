@@ -5,16 +5,17 @@
 #include "btree.h"
 
 int compare(void *this, void *other) {
-  return strcmp((const char *) this, (const char *) other);
+  // return strcmp(this, other);
+  return strtol(this, NULL, 10) - strtol(other, NULL, 10);
 }
 
 void callback(void *valor, void *user_data) {
-  printf("%.0f ", * (double *) valor);
+  printf("%d ", * (int *) valor);
 }
 
 void inserirNum(BTree_t tree, char *num) {
-  double *pNum = malloc(sizeof(double));
-  *pNum = strtod(num, NULL);
+  int *pNum = malloc(sizeof(int));
+  *pNum = strtol(num, NULL, 10);
   bt_insert(tree, num, (void *) pNum);
 }
 
@@ -57,12 +58,27 @@ int main(int argc, char *argv[]) {
   bt_traverse(tree, callback, NULL);
   printf("\n");
 
-  removeTeste(tree, "6");
-  removeTeste(tree, "13");
-  removeTeste(tree, "7");
-  removeTeste(tree, "4");
-  removeTeste(tree, "2");
-  removeTeste(tree, "16");
+  // removeTeste(tree, "6");
+  // removeTeste(tree, "13");
+  // removeTeste(tree, "7");
+  // removeTeste(tree, "4");
+  // removeTeste(tree, "2");
+  // removeTeste(tree, "16");
+
+  printf("\n\nRange search entre 10 e 20:\n");
+  Lista_t intervalo = bt_range_search(tree, "10", "20");
+
+  Posic_t it = lt_get_first(intervalo);
+  while (it) {
+    int *item = lt_get(intervalo, it);
+
+    printf("%d ", *item);
+
+    it = lt_get_next(intervalo, it);
+  }
+  lt_destroy(intervalo, NULL);
+
+  printf("\n");
 
   bt_destroy(tree, free);
 

@@ -355,77 +355,73 @@ void merge_node(BTreeNode_t this, int indice) {
   destroy_node(irmao, NULL);
 }
 
-void range_search_recursive(BTreeNode_t node, char *chave_min, char *chave_max, Lista_t lista){
+void range_search_recursive(BTreeNode_t node, char *chave_min, char *chave_max, Lista_t lista) {
   
-  if(node->folha){
-    int i, result, exit;
-    for(i = 0; i < node->numero_filhos; i++){
+  if (node->folha) {
+    int sair = 0;
+    for (int i = 0; i < node->numero_filhos; i++) {
 
-      result = intervalo_chave(node->chaves[i]->chave, chave_min, chave_max, node->compare);
-      switch(result){
-        case -1:{
+      int result = intervalo_chave(node->chaves[i]->chave, chave_min, chave_max, node->compare);
+      switch (result) {
+        case -1:
           continue;
-          break;
-        }
-        case 0:{
+
+        case 0:
           lt_insert(lista, node->chaves[i]->valor);
           break;
-        }
-        case 1:{
-          exit = 1;
+
+        case 1:
+          sair = 1;
           break;
-        }
       }
-      if(exit) break;
+
+      if (sair) break;
 
     }
 
-  }
-  else{
-    int i, result, exit = 0;
-    for(i = 0; i < node->numero_filhos; i++){
+  } else {
+    int sair = 0;
+    for (int i = 0; i < node->numero_filhos; i++) {
 
-      result = intervalo_chave(node->chaves[i]->chave, chave_min, chave_max, node->compare);
-      switch(result){
-        case -1:{
+      int result = intervalo_chave(node->chaves[i]->chave, chave_min, chave_max, node->compare);
+      switch (result) {
+        case -1:
           continue;
-          break;
-        }
-        case 0:{
+
+        case 0:
           range_search_recursive(node->filhos[i], chave_min, chave_max, lista);
           lt_insert(lista, node->chaves[i]->valor);
           break;
-        }
-        case 1:{
-          exit = 1;
+
+        case 1:
+          sair = 1;
           range_search_recursive(node->filhos[i], chave_min, chave_max, lista);
           break;
-        }
       }
-      if(exit) break;
+      if (sair) break;
 
     }
-    // Se exit é 0, quer dizer que o último item era 0 e o for chegou no final
+    // Se sair é 0, quer dizer que o último item era 0 e o for chegou no final
     // Então, procurar na chave mais a direita
-    if(exit == 0){
-      range_search_recursive(node->filhos[i], chave_min, chave_max, lista);
+    if (sair == 0) {
+      range_search_recursive(node->filhos[node->numero_filhos], chave_min, chave_max, lista);
     }
 
   }
     
 }
 
-int intervalo_chave(char *chave , char *chave_min, char *chave_max, int (*compare)(void *this, void *other)){
-  if(compare(chave, chave_min) == -1){
+int intervalo_chave(char *chave , char *chave_min, char *chave_max, int (*compare)(void *this, void *other)) {
+  if (compare(chave, chave_min) < 0) {
     // Chave é menor que mínimo
     return -1;
   }
-  else{
-    if( compare(chave, chave_max) == 1){
-      // Chave é maior que max
-      return 1;
-    }
-    // Chave está entre os dois
-    return 0;
+
+  if ( compare(chave, chave_max) > 0) {
+    // Chave é maior que max
+    return 1;
   }
+  
+  // Chave está entre os dois
+  return 0;
 }
