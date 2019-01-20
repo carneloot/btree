@@ -128,3 +128,10 @@ bool bt_is_empty(BTree_t _this) {
   struct BTree_t * this = (struct BTree_t *) _this;
   return (this->root == NULL);
 }
+
+Lista_t bt_range_search(BTree_t _this, char *chave_min, char *chave_max){
+  struct BTree_t* this = _this;
+  Lista_t lista = lt_create();
+  range_search_recursive(this->root, chave_min, chave_max, lista);
+  return lista;
+}

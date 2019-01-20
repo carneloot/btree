@@ -1,4 +1,5 @@
 #include "btreenode.h"
+#include "lista.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -352,4 +353,64 @@ void merge_node(BTreeNode_t this, int indice) {
   this->numero_filhos--;
 
   destroy_node(irmao, NULL);
+}
+
+void range_search_recursive(BTreeNode_t node, char *chave_min, char *chave_max, Lista_t lista){
+  
+  if(node->folha){
+    int i, result, exit;
+    for(i = 0; i < node->numero_filhos; i++){
+
+      result = intervalo_chave(node->chaves[i]->chave, chave_min, chave_max, node->compare);
+      switch(result){
+        case -1:{
+          continue;
+          break;
+        }
+        case 0:{
+          lt_insert(lista, node->chaves[i]->valor);
+          break;
+        }
+        case 1:{
+          exit = 1;
+          break;
+        }
+      }
+      if(exit) break;
+
+    }
+
+  }
+  else{
+    int i, result, exit = 0;
+    for(i = 0; i < node->numero_filhos; i++){
+
+      result = intervalo_chave(node->chaves[i]->chave, chave_min, chave_max, node->compare);
+      switch(result){
+        case -1:{
+          continue;
+          break;
+        }
+        case 0:{
+          range_search_recursive(node->filhos[i], chave_min, chave_max, lista);
+          lt_insert(lista, node->chaves[i]->valor);
+          break;
+        }
+        case 1:{
+          exit = 1;
+          range_search_recursive(node->filhos[i], chave_min, chave_max, lista);
+          break;
+        }
+      }
+      if(exit) break;
+
+    }
+    // Se exit é 0, quer dizer que o último item era 0 e o for chegou no final
+    // Então, procurar na chave mais a direita
+    if(exit == 0){
+      range_search_recursive(node->filhos[i], chave_min, chave_max, lista);
+    }
+
+  }
+    
 }

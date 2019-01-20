@@ -80,12 +80,12 @@ BTreePair_t get_successor_node(BTreeNode_t this, int indice);
 void fill_node(BTreeNode_t this, int indice);
 
 /**
- * Empreta a chave do anterior
+ * Empresta a chave do anterior
  */
 void borrow_from_prev_node(BTreeNode_t this, int indice);
 
 /**
- * Empreta a chave do proximo
+ * Empresta a chave do proximo
  */
 void borrow_from_next_node(BTreeNode_t this, int indice);
 
@@ -93,5 +93,12 @@ void borrow_from_next_node(BTreeNode_t this, int indice);
  * Junta os filhos do indice com os do (indice + 1)
  */
 void merge_node(BTreeNode_t this, int indice);
+
+/**
+ * -1 -> chave < min
+ *  0 -> min < chave < max
+ *  1 -> max < chave
+ */
+int intervalo_chave(char chave , char *chave_min, char *chave_max, int (*compare)(void *this, void *other));
 
 #endif /* __BTREENODE_H__ */

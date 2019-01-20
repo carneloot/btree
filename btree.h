@@ -2,6 +2,7 @@
 #define __BTREE_H__
 
 #include <stdbool.h>
+#include "lista.h"
 
 /**
  * Tipo que representa uma Arvore B
@@ -46,5 +47,7 @@ void *bt_remove(BTree_t this, char *chave);
  * 0, caso contrário
  */
 bool bt_is_empty(BTree_t this);
+
+Lista_t bt_range_search(BTree_t this, char *chave_min, char *chave_max);
 
 #endif /* __BTREE_H__ */
