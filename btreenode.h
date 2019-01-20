@@ -5,7 +5,7 @@
 
 /** Par chave / item */
 struct BTreePair_t {
-  double chave;
+  char *chave;
   void *valor;
 };
 
@@ -30,7 +30,7 @@ bool is_full_node(BTreeNode_t this);
 
 void traverse_node(BTreeNode_t this, void (*callback)(void *item, void *user_data), void *user_data);
 
-void *search_node(BTreeNode_t this, double chave);
+void *search_node(BTreeNode_t this, char *chave);
 
 /**
  * Funcao que splita o filho do node this.
@@ -42,17 +42,17 @@ void split_child_node(BTreeNode_t this, int indice, BTreeNode_t child);
  * Funcao auxiliar para inserir um novo par no node.
  * Assume-se que o no nao esteja cheio quando essa funcao eh chamada
  */
-void insert_non_full_node(BTreeNode_t this, double chave, void *valor);
+void insert_non_full_node(BTreeNode_t this, char *chave, void *valor);
 
 /**
  * Funcao que retorna o indice da primeira chave maior que a chave passada
  */
-int find_key_node(BTreeNode_t this, double chave);
+int find_key_node(BTreeNode_t this, char *chave);
 
 /**
  * Um container para a remocao da chave chave
  */
-void *remove_node(BTreeNode_t this, double chave);
+void *remove_node(BTreeNode_t this, char *chave);
 
 /**
  * Remove a chave presente no indice de um no folha

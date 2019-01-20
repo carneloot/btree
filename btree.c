@@ -43,7 +43,7 @@ void bt_traverse(BTree_t _this, void (*callback)(void *item, void *user_data), v
   }
 }
 
-void *bt_search(BTree_t _this, double chave) {
+void *bt_search(BTree_t _this, char *chave) {
   struct BTree_t * this = (struct BTree_t *) _this;
 
   if (this->root == NULL)
@@ -52,7 +52,7 @@ void *bt_search(BTree_t _this, double chave) {
   return search_node(this->root, chave);
 }
 
-void *bt_insert(BTree_t _this, double chave, void *valor) {
+void *bt_insert(BTree_t _this, char *chave, void *valor) {
   struct BTree_t * this = (struct BTree_t *) _this;
 
   // Se a arvore estiver vazia
@@ -97,7 +97,7 @@ void *bt_insert(BTree_t _this, double chave, void *valor) {
   }
 }
 
-void *bt_remove(BTree_t _this, double chave) {
+void *bt_remove(BTree_t _this, char *chave) {
   struct BTree_t *this = (struct BTree_t *) _this;
 
   if (this->root == NULL) {

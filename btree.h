@@ -29,17 +29,17 @@ void bt_traverse(BTree_t this, void (*callback)(void *item, void *user_data), vo
  * Procura por um item com chave chave.
  * Se encontrado, retorna esse item
  */
-void *bt_search(BTree_t this, double chave);
+void *bt_search(BTree_t this, char *chave);
 
 /**
  * Insere o valor na arvore this usando a chave chave
  */
-void *bt_insert(BTree_t this, double chave, void *valor);
+void *bt_insert(BTree_t this, char *chave, void *valor);
 
 /**
  * Remove o valor representado por chave na arvoce
  */
-void *bt_remove(BTree_t this, double chave);
+void *bt_remove(BTree_t this, char *chave);
 
 /**
  * Retorna 1 se a árvore estiver vazia
