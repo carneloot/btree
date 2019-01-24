@@ -13,7 +13,13 @@ typedef void *BTree_t;
 /**
  * Retorna uma nova BTree vazia de grau grau
  */
-BTree_t bt_create(int grau, int (*compare)(void *this, void *other));
+BTree_t bt_create(char *path_and_name, unsigned tamanho_do_item, int (*compare)(void *this, void *other)) {;
+
+
+/**
+ * Abre uma btree que já está em um arquivo
+ */
+BTree_t bt_start(char *path_and_name);
 
 /**
  * Destroi a BTree.
