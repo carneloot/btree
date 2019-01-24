@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include "lista.h"
+#include "binfile.h"
 
 /**
  * Tipo que representa uma Arvore B

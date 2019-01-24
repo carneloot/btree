@@ -5,17 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-BTreeNode_t create_node(int grau, bool folha, int (*compare)(void *this, void *other)) {
+BTreeNode_t create_node( bool folha) {
   BTreeNode_t this = (BTreeNode_t) calloc(1, sizeof(*this));
 
-  this->grau  = grau;
   this->folha = folha;
-
-  this->compare = compare;
-
-  this->chaves = (BTreePair_t *) calloc(2 * grau - 1, sizeof(*this->chaves));
-  this->filhos = (BTreeNode_t *) calloc(2 * grau,     sizeof(*this->filhos));
-
   this->numero_filhos = 0;
 
   return this;
@@ -65,43 +58,48 @@ void traverse_node(BTreeNode_t this, void (*callback)(void *item, void *user_dat
 
 }
 
-void *search_node(BTreeNode_t this, char *chave) {
+void *search_node(BTreeNode_t this, char *chave, int (*compare)(void *this, void *other), Arquivo tree, Arquivo item) {
   int i = 0;
 
   // Percorre ate achar a chave "maior" que a passada
-  while (i < this->numero_filhos && this->compare(this->chaves[i]->chave, chave) > 0)
+  while (i < this->numero_filhos && compare(this->chaves[i].chave, chave) > 0)
     i++;
 
   // Se a chave for igual, retorna o valor atual
-  if (this->chaves[i] && this->compare(this->chaves[i]->chave, chave) == 0)
-    return this->chaves[i]->valor;
+  if (compare(this->chaves[i].chave, chave) == 0)
+    return bin_get_item(item, this->filhos[i]);
+  
   
   // Se chegou numa folha, quer dizer que nao achou o item
   if (this->folha == true)
     return NULL;
 
   // Procura no filho
-  return search_node(this->filhos[i], chave);
+  BTreeNode_t filho = bin_get_item(tree, this->filhos[i]);
+  void *item = search_node(filho, chave, compare, tree, item);
+  free(filho);
+
+  return item;
 }
 
 void split_child_node(BTreeNode_t this, int indice, BTreeNode_t child) {
 
   // Cria um novo no que vai guardar this->grau - 1 valores
-  BTreeNode_t novo_node = create_node(child->grau, child->folha, this->compare);
-  novo_node->numero_filhos = this->grau - 1;
+  BTreeNode_t novo_node = create_node(child->folha);
+  novo_node->numero_filhos = GRAU - 1;
 
   // Copia os ultimos this->grau - 1 valores de child para novo_node
-  for (int j = 0; j < this->grau - 1; j++)
-    novo_node->chaves[j] = child->chaves[j + this->grau];
+  for (int j = 0; j < GRAU - 1; j++)
+    novo_node->chaves[j] = child->chaves[j + GRAU];
 
-  // Copia os ultimos this->grau filhos de child para novo_node
+  // Copia os ultimos GRAU filhos de child para novo_node
   if (child->folha == false) {
-    for (int j = 0; j < this->grau; j++)
-      novo_node->filhos[j] = child->filhos[j + this->grau];
+    for (int j = 0; j < GRAU; j++)
+      novo_node->filhos[j] = child->filhos[j + GRAU];
   }
 
   // Reduzir o numero de valores em child
-  child->numero_filhos = this->grau - 1;
+  child->numero_filhos = GRAU - 1;
 
   // Abrir espaco para o novo filho
   for (int j = this->numero_filhos; j >= indice + 1; j--) {
@@ -116,7 +114,7 @@ void split_child_node(BTreeNode_t this, int indice, BTreeNode_t child) {
     this->chaves[j + 1] = this->chaves[j];
 
   // Copia a chave do meio de child para this
-  this->chaves[indice] = child->chaves[this->grau - 1];
+  this->chaves[indice] = child->chaves[GRAU - 1];
 
   // Incrementar o numero de filhos em this
   this->numero_filhos++;

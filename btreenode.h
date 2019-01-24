@@ -3,27 +3,37 @@
 
 #include <stdbool.h>
 #include "lista.h"
+#include "binfile.h"
+
+/**
+ *  Não consegui pensar em uma forma do usuário escolher
+ *  o grau da árvore e fosse prático de implementar.
+ *  Devido à falta de tempo, o grau será fixo
+ */
+
+#define GRAU 20 
 
 /** Par chave / item */
 struct BTreePair_t {
-  char *chave;
-  void *valor;
+  char chave[30];
+  int valor;  // Guarda a posição do Item no arquivo
 };
 
 typedef struct BTreePair_t *BTreePair_t;
 
 struct BTreeNode_t {
-  BTreePair_t *chaves;         // Guarda todas as chaves desse no
-  int grau;                    // Grau minimo do no
-  struct BTreeNode_t **filhos; // Um vetor de filhos
+  struct BTreePair_t chaves[2 * GRAU - 1];         // Guarda todas as chaves desse no
+  // int grau;                    // Grau minimo do no
+  // struct BTreeNode_t **filhos; // Um vetor de filhos
+  int filhos[2 * GRAU];
   int numero_filhos;           // Numero atual de filhos
   bool folha;                  // Determina se o no eh uma folha ou nao
-  int (*compare)(void *this, void *other); // Funcao para comparar as chaves
+  // int (*compare)(void *this, void *other); // Funcao para comparar as chaves
 };
 
 typedef struct BTreeNode_t *BTreeNode_t;
 
-BTreeNode_t create_node(int grau, bool folha, int (*compare)(void *this, void *other));
+BTreeNode_t create_node(bool folha);
 
 void destroy_node(BTreeNode_t this, void *_destruir_item);
 
@@ -31,7 +41,7 @@ bool is_full_node(BTreeNode_t this);
 
 void traverse_node(BTreeNode_t this, void (*callback)(void *item, void *user_data), void *user_data);
 
-void *search_node(BTreeNode_t this, char *chave);
+void *search_node(BTreeNode_t this, char *chave, int (*compare)(void *this, void *other), Arquivo tree, Arquivo item);
 
 /**
  * Funcao que splita o filho do node this.
