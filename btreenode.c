@@ -76,7 +76,8 @@ void *search_node(BTreeNode_t this, char *chave, int (*compare)(void *this, void
 
   // Procura no filho
   BTreeNode_t filho = bin_get_item(tree, this->filhos[i]);
-  void *item = search_node(filho, chave, compare, tree, item);
+  void *item = NULL;
+  item = search_node(filho, chave, compare, tree, item);
   free(filho);
 
   return item;
@@ -236,7 +237,8 @@ void *remove_node(BTreeNode_t this, char *chave, int (*compare)(void *this, void
       void *item = remove_node(filho, chave, compare, tree, itens, 1);
       if(filho->posic_arquivo != -1)
         bin_insert(tree, filho, filho->posic_arquivo);
-        free(filho);
+
+      free(filho);
       return item;
     }
     
@@ -280,7 +282,7 @@ void *remove_from_non_leaf_node(BTreeNode_t this, int indice, int (*compare)(voi
     if(filho_indice->posic_arquivo != -1){
       bin_insert(tree, filho_indice, filho_indice->posic_arquivo);
     }
-    
+
     free(pred);
     free(filho_indice);
     return item;
