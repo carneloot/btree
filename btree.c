@@ -130,7 +130,7 @@ void *bt_insert(BTree_t _this, char *chave, void *valor) {
         i++;
       
       BTreeNode_t filho = bin_get_item(this->tree, nova_raiz->filhos[i]);
-      insert_non_full_node(filho, chave, valor, this->compare, this->tree);
+      insert_non_full_node(filho, chave, valor, this->compare, this->tree, this->itens);
       bin_insert(this->tree, filho, filho->posic_arquivo);
 
       bin_insert(this->tree, root, root->posic_arquivo);

@@ -40,10 +40,10 @@ void destroy_node(BTreeNode_t this, void *_destruir_item) {
 }
 
 bool is_full_node(BTreeNode_t this) {
-  return (this->numero_filhos == 2 * this->grau - 1);
+  return (this->numero_filhos == 2 * GRAU - 1);
 }
 
-void traverse_node(BTreeNode_t this, void (*callback)(void *item, void *user_data), void *user_data) {
+/*void traverse_node(BTreeNode_t this, void (*callback)(void *item, void *user_data), void *user_data) {
   int i;
 
   for (i = 0; i < this->numero_filhos; i++) {
@@ -56,7 +56,7 @@ void traverse_node(BTreeNode_t this, void (*callback)(void *item, void *user_dat
   if (this->folha == false)
     traverse_node(this->filhos[i], callback, user_data);
 
-}
+}*/
 
 void *search_node(BTreeNode_t this, char *chave, int (*compare)(void *this, void *other), Arquivo tree, Arquivo item) {
   int i = 0;
