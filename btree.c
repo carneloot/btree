@@ -11,8 +11,8 @@ struct BTree_t {
   int root;         // Posição da raíz no arquivo
   // int grau;         // Grau da arvore
   int (*compare)(void *this, void *other); // Funcao para comparar as chaves
-  Arquivo tree;
-  Arquivo itens;
+  Arquivo_bin tree;
+  Arquivo_bin itens;
 };
 
 /* =========== FUNCOES ARVORE =========== */
@@ -38,7 +38,7 @@ BTree_t bt_create(char *path_and_name, unsigned tamanho_do_item, int (*compare)(
 BTree_t bt_start(char *path_and_name){
   struct BTree_t *this;
 
-  Arquivo tree = bin_open(path_and_name, this); // O header é a struct da árvore
+  Arquivo_bin tree = bin_open(path_and_name, this); // O header é a struct da árvore
 
   this->tree = tree;
 
