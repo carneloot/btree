@@ -58,7 +58,7 @@ bool is_full_node(BTreeNode_t this) {
 
 }*/
 
-void *search_node(BTreeNode_t this, char *chave, int (*compare)(void *this, void *other), Arquivo tree, Arquivo item) {
+void *search_node(BTreeNode_t this, char *chave, int (*compare)(void *this, void *other), Arquivo tree, Arquivo itens) {
   int i = 0;
 
   // Percorre ate achar a chave "maior" que a passada
@@ -67,7 +67,7 @@ void *search_node(BTreeNode_t this, char *chave, int (*compare)(void *this, void
 
   // Se a chave for igual, retorna o valor atual
   if (compare(this->chaves[i].chave, chave) == 0)
-    return bin_get_item(item, this->filhos[i]);
+    return bin_get_item(itens, this->filhos[i]);
   
   
   // Se chegou numa folha, quer dizer que nao achou o item
@@ -162,8 +162,10 @@ void insert_non_full_node(BTreeNode_t this, char *chave, void *valor, int (*comp
       bin_insert(tree, filho, filho->posic_arquivo);
     }
 
+    free(filho);
     // Eu abro filho denovo aqui pois o i pode ter mudado
-    BTreeNode_t filho = bin_get_item(tree, this->filhos[i + 1]);
+    filho = bin_get_item(tree, this->filhos[i + 1]);
+
     insert_non_full_node(filho, chave, valor, compare, tree, itens);
     bin_insert(tree, filho, filho->posic_arquivo);
   }
@@ -231,7 +233,7 @@ void *remove_node(BTreeNode_t this, char *chave, int (*compare)(void *this, void
     else{
       free(filho);
       filho = bin_get_item(tree, this->filhos[indice]);
-      void *item = remove_node(this->filhos[indice], chave, compare, tree, itens, 1);
+      void *item = remove_node(filho, chave, compare, tree, itens, 1);
       if(filho->posic_arquivo != -1)
         bin_insert(tree, filho, filho->posic_arquivo);
         free(filho);
@@ -274,7 +276,11 @@ void *remove_from_non_leaf_node(BTreeNode_t this, int indice, int (*compare)(voi
     this->chaves[indice].valor = pred->chaves[pred->numero_filhos - 1].valor;
     strcpy(this->chaves[indice].chave, pred->chaves[pred->numero_filhos - 1].chave);
     
-    remove_node(this->filhos[indice], pred->chaves[pred->numero_filhos].chave, compare, tree, itens, 0);
+    remove_node(filho_indice, pred->chaves[pred->numero_filhos].chave, compare, tree, itens, 0);
+    if(filho_indice->posic_arquivo != -1){
+      bin_insert(tree, filho_indice, filho_indice->posic_arquivo);
+    }
+    
     free(pred);
     free(filho_indice);
     return item;

@@ -4,7 +4,7 @@
 
 #include "btree.h"
 
-int compare(void *this, void *other) {
+int compare_item(void *this, void *other) {
   // return strcmp(this, other);
   return strtol(this, NULL, 10) - strtol(other, NULL, 10);
 }
@@ -28,7 +28,7 @@ void removeTeste(BTree_t tree, char *num) {
 
 int main(int argc, char *argv[]) {
 
-  BTree_t tree = bt_create(3, compare);
+  BTree_t tree = bt_create(3, compare_item);
 
   inserirNum(tree, "1"); 
   inserirNum(tree, "3"); 
