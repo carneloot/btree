@@ -36,7 +36,7 @@ BTree_t bt_create(char *path_and_name, unsigned tamanho_do_item, int (*compare)(
 }
 
 BTree_t bt_start(char *path_and_name){
-  struct BTree_t *this;
+  struct BTree_t *this = malloc(sizeof(struct BTree_t));
 
   Arquivo_bin tree = bin_open(path_and_name, this); // O header é a struct da árvore
 
@@ -56,11 +56,9 @@ void bt_destroy(BTree_t _this, void (*destruir_item)()) {
   struct BTree_t * this = (struct BTree_t *) _this;
 
   // Se a arvore nao ta vazia
-  if (this->root != NULL) {
-
-    destroy_node(this->root, destruir_item);
-
-  }
+  // if (this->root != -1) {
+  //   destroy_node(this->root, destruir_item);
+  // }
   
   bin_close(this->tree, this);
   bin_close(this->itens, NULL);
@@ -68,13 +66,13 @@ void bt_destroy(BTree_t _this, void (*destruir_item)()) {
 }
 
 // Não implementado com arquivo
-void bt_traverse(BTree_t _this, void (*callback)(void *item, void *user_data), void *user_data) {
+/*void bt_traverse(BTree_t _this, void (*callback)(void *item, void *user_data), void *user_data) {
   struct BTree_t * this = (struct BTree_t *) _this;
 
   if (this->root != NULL) {
     traverse_node(this->root, callback, user_data);
   }
-}
+}*/
 
 void *bt_search(BTree_t _this, char *chave) {
   struct BTree_t * this = (struct BTree_t *) _this;
@@ -126,7 +124,7 @@ void *bt_insert(BTree_t _this, char *chave, void *valor) {
       // Nova raiz tem dois filhos
       // Escolher para onde inserir
       int i = 0;
-      if (compare(nova_raiz->chaves[0].chave, chave) == 1)
+      if (this->compare(nova_raiz->chaves[0].chave, chave) == 1)
         i++;
       
       BTreeNode_t filho = bin_get_item(this->tree, nova_raiz->filhos[i]);
@@ -147,10 +145,11 @@ void *bt_insert(BTree_t _this, char *chave, void *valor) {
     // Se a raiz nao estiver cheia, so adicionar usando a inser_non_full_node
     else{
       BTreeNode_t root = bin_get_item(this->tree, this->root);
-      insert_non_full_node(root, chave, valor, this->compare, this->tree);
+      insert_non_full_node(root, chave, valor, this->compare, this->tree, this->itens);
     }
 
   }
+  return NULL;
 }
 // CONTINUAR A PARTIR DAQUI----
 void *bt_remove(BTree_t _this, char *chave) {

@@ -13,7 +13,7 @@ typedef void *BTree_t;
 /**
  * Retorna uma nova BTree vazia de grau grau
  */
-BTree_t bt_create(char *path_and_name, unsigned tamanho_do_item, int (*compare)(void *this, void *other)) {;
+BTree_t bt_create(char *path_and_name, unsigned tamanho_do_item, int (*compare)(void *this, void *other));
 
 
 /**
@@ -31,7 +31,7 @@ void bt_destroy(BTree_t this, void (*destroy_item)(void *item));
 /**
  * Percorre a BTree aplicando uma funcao de callback em todo item
  */
-void bt_traverse(BTree_t this, void (*callback)(void *item, void *user_data), void *user_data);
+//void bt_traverse(BTree_t this, void (*callback)(void *item, void *user_data), void *user_data);
 
 /**
  * Procura por um item com chave chave.
