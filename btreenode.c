@@ -62,18 +62,18 @@ void *search_node(BTreeNode_t this, char *chave, int (*compare)(void *this, void
   int i = 0;
 
   // Percorre ate achar a chave "maior" que a passada
-  while (i < this->numero_filhos && compare(this->chaves[i].chave, chave) > 0)
+  while (i < this->numero_filhos && compare(this->chaves[i].chave, chave) < 0)
     i++;
 
   // Se a chave for igual, retorna o valor atual
   if (compare(this->chaves[i].chave, chave) == 0)
-    return bin_get_item(itens, this->filhos[i]);
+    return bin_get_item(itens, this->chaves[i].valor);
   
   
   // Se chegou numa folha, quer dizer que nao achou o item
   if (this->folha == true)
     return NULL;
-
+  
   // Procura no filho
   BTreeNode_t filho = bin_get_item(tree, this->filhos[i]);
   void *item = NULL;
@@ -143,6 +143,7 @@ void insert_non_full_node(BTreeNode_t this, char *chave, void *valor, int (*comp
     strcpy(this->chaves[i + 1].chave, chave);
     this->chaves[i + 1].valor = bin_insert(itens, valor, -1);
     this->numero_filhos++;
+    bin_insert(tree, this, this->posic_arquivo);
   }
 
   // Se nao for uma folha

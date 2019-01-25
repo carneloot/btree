@@ -77,8 +77,10 @@ void bt_destroy(BTree_t _this, void (*destruir_item)()) {
 void *bt_search(BTree_t _this, char *chave) {
   struct BTree_t * this = (struct BTree_t *) _this;
 
-  if (this->root == -1)
+  if (this->root == -1){
+    printf("A arvore esta vazia\n");
     return NULL;
+  }
 
 
   BTreeNode_t root = bin_get_item(this->tree, this->root);
@@ -103,6 +105,7 @@ void *bt_insert(BTree_t _this, char *chave, void *valor) {
     this->root = bin_get_free_block(this->tree);
     root->posic_arquivo = this->root;
     bin_insert(this->tree, root, this->root);
+    free(root);
   }
 
   // Se a arvore nao esta vazia
@@ -144,8 +147,10 @@ void *bt_insert(BTree_t _this, char *chave, void *valor) {
 
     // Se a raiz nao estiver cheia, so adicionar usando a inser_non_full_node
     else{
-      BTreeNode_t root = bin_get_item(this->tree, this->root);
+      // BTreeNode_t root = bin_get_item(this->tree, this->root);
       insert_non_full_node(root, chave, valor, this->compare, this->tree, this->itens);
+      bin_insert(this->tree, root, root->posic_arquivo);
+      free(root);
     }
 
   }
