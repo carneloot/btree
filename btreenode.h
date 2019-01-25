@@ -28,7 +28,7 @@ struct BTreeNode_t {
   int filhos[2 * GRAU];
   int numero_filhos;           // Numero atual de filhos
   bool folha;                  // Determina se o no eh uma folha ou nao
-  // int (*compare)(void *this, void *other); // Funcao para comparar as chaves
+  int posic_arquivo;           // Posição em que está no arquivo
 };
 
 typedef struct BTreeNode_t *BTreeNode_t;
@@ -47,63 +47,63 @@ void *search_node(BTreeNode_t this, char *chave, int (*compare)(void *this, void
  * Funcao que splita o filho do node this.
  * Filho deve estar cheio.
  */
-void split_child_node(BTreeNode_t this, int indice, BTreeNode_t child);
+void split_child_node(BTreeNode_t this, int indice, BTreeNode_t child, Arquivo tree);
 
 /**
  * Funcao auxiliar para inserir um novo par no node.
  * Assume-se que o no nao esteja cheio quando essa funcao eh chamada
  */
-void insert_non_full_node(BTreeNode_t this, char *chave, void *valor);
+void insert_non_full_node(BTreeNode_t this, char *chave, void *valor, int (*compare)(void *this, void *other), Arquivo tree, Arquivo itens);
 
 /**
  * Funcao que retorna o indice da primeira chave maior que a chave passada
  */
-int find_key_node(BTreeNode_t this, char *chave);
+int find_key_node(BTreeNode_t this, char *chave, int (*compare)(void *this, void *other));
 
 /**
  * Um container para a remocao da chave chave
  */
-void *remove_node(BTreeNode_t this, char *chave);
+void *remove_node(BTreeNode_t this, char *chave, int (*compare)(void *this, void *other), Arquivo tree, Arquivo itens, bool return_deleted);
 
 /**
  * Remove a chave presente no indice de um no folha
  */
-void *remove_from_leaf_node(BTreeNode_t this, int indice);
+void *remove_from_leaf_node(BTreeNode_t this, int indice, Arquivo tree, Arquivo itens, bool return_deleted);
 
 /**
  * Remove a chave presente no indice de um no nao folha
  */
-void *remove_from_non_leaf_node(BTreeNode_t this, int indice);
+void *remove_from_non_leaf_node(BTreeNode_t this, int indice, int (*compare)(void *this, void *other), Arquivo tree, Arquivo itens, bool return_deleted);
 
 /**
  * Pega o predecessor do indice
  */
-BTreePair_t get_predecessor_node(BTreeNode_t this, int indice);
+BTreeNode_t get_predecessor_node(BTreeNode_t this, int indice, Arquivo tree);
 
 /**
  * Pega o sucessor do indice
  */
-BTreePair_t get_successor_node(BTreeNode_t this, int indice);
+BTreeNode_t get_successor_node(BTreeNode_t this, int indice, Arquivo tree);
 
 /**
  * Preenche o filho no indice se o filho tem menos que grau - 1 itens
  */
-void fill_node(BTreeNode_t this, int indice);
+void fill_node(BTreeNode_t this, int indice, Arquivo tree);
 
 /**
  * Empresta a chave do anterior
  */
-void borrow_from_prev_node(BTreeNode_t this, int indice);
+void borrow_from_prev_node(BTreeNode_t this, int indice, Arquivo tree);
 
 /**
  * Empresta a chave do proximo
  */
-void borrow_from_next_node(BTreeNode_t this, int indice);
+void borrow_from_next_node(BTreeNode_t this, int indice, Arquivo tree);
 
 /**
  * Junta os filhos do indice com os do (indice + 1)
  */
-void merge_node(BTreeNode_t this, int indice);
+void merge_node(BTreeNode_t this, int indice, Arquivo tree);
 
 /**
  * -1 -> chave < min

@@ -1,3 +1,5 @@
+#ifndef __BINFILE_H__
+#define __BINFILE_H__
 #include <stdio.h>
 #include <stdbool.h>
 
@@ -49,3 +51,10 @@ Item bin_get_item(Arquivo arquivo, Posic posic );
  */
 Item bin_get_first(Arquivo arquivo);
 
+/**
+ * Returns the first free block in
+ * file
+ */
+int bin_get_free_block(Arquivo arquivo);
+
+#endif // __BIN_FILE__

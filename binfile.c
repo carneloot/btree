@@ -50,7 +50,6 @@ Arquivo bin_open(char *file_path, void *header){
 
 void bin_close(Arquivo _arquivo, void *header){
   struct Arquivo* arquivo = _arquivo;
-  
   fseek(arquivo->file, 0, SEEK_SET);
   fwrite(arquivo, sizeof(struct Arquivo), 1, arquivo->file);
   if(header != NULL){
@@ -140,4 +139,24 @@ Item bin_get_first(Arquivo _arquivo){
   void *item = malloc(arquivo->item_size);
   fread(item, arquivo->item_size, 1, arquivo->file);
   return item;
+}
+
+int bin_get_free_block(Arquivo _arquivo){
+  struct Arquivo *arquivo = _arquivo;
+  int block;
+
+  bool ocupado = 1;
+  fseek(arquivo->file, arquivo->total_header_size, SEEK_SET);
+  block = 0;
+  while(1){
+    fread(&ocupado, sizeof(bool), 1, arquivo->file);
+    if(ocupado == 0){
+      fseek(arquivo->file, -sizeof(bool), SEEK_CUR);
+      break;
+    }
+    fseek(arquivo->file, arquivo->item_size, SEEK_CUR);
+    block++;
+  }
+
+  return block;
 }

@@ -102,7 +102,9 @@ void *bt_insert(BTree_t _this, char *chave, void *valor) {
     root->chaves[0].valor = item;
     root->numero_filhos = 1;
 
-    this->root = bin_insert(this->tree, root, -1);
+    this->root = bin_get_free_block(this->tree);
+    root->posic_arquivo = this->root;
+    bin_insert(this->tree, root, this->root);
   }
 
   // Se a arvore nao esta vazia
@@ -119,45 +121,60 @@ void *bt_insert(BTree_t _this, char *chave, void *valor) {
       nova_raiz->filhos[0] = this->root;
 
       // Splita a raiz antiga
-      split_child_node(nova_raiz, 0, root);
+      split_child_node(nova_raiz, 0, root, this->tree);
 
       // Nova raiz tem dois filhos
       // Escolher para onde inserir
       int i = 0;
-      if (nova_raiz->chaves[0]->chave < chave)
+      if (compare(nova_raiz->chaves[0].chave, chave) == 1)
         i++;
-      insert_non_full_node(nova_raiz->filhos[i], chave, valor);
+      
+      BTreeNode_t filho = bin_get_item(this->tree, nova_raiz->filhos[i]);
+      insert_non_full_node(filho, chave, valor, this->compare, this->tree);
+      bin_insert(this->tree, filho, filho->posic_arquivo);
+
+      bin_insert(this->tree, root, root->posic_arquivo);
+      nova_raiz->posic_arquivo = bin_get_free_block(this->tree);
+      
+      bin_insert(this->tree, nova_raiz, nova_raiz->posic_arquivo);
 
       // Mudar a raiz
-      this->root = nova_raiz;
-
+      this->root = nova_raiz->posic_arquivo;
+      free(nova_raiz);
+      free(root);
     }
 
     // Se a raiz nao estiver cheia, so adicionar usando a inser_non_full_node
-    else 
-      insert_non_full_node(this->root, chave, valor);
+    else{
+      BTreeNode_t root = bin_get_item(this->tree, this->root);
+      insert_non_full_node(root, chave, valor, this->compare, this->tree);
+    }
+
   }
 }
-
+// CONTINUAR A PARTIR DAQUI----
 void *bt_remove(BTree_t _this, char *chave) {
   struct BTree_t *this = (struct BTree_t *) _this;
 
-  if (this->root == NULL) {
+  if (this->root == -1) {
     printf("A arvore esta vazia.\n");
     return NULL;
   }
+  BTreeNode_t root = bin_get_item(this->tree, this->root);
+  void *retorno = remove_node(root, chave, this->compare, this->tree, this->itens, 1);
+  bin_insert(this->tree, root, root->posic_arquivo);
 
-  void *retorno = remove_node(this->root, chave);
+  if (root->numero_filhos == 0) {
+    // BTreeNode_t tmp = this->root;
 
-  if (this->root->numero_filhos == 0) {
-    BTreeNode_t tmp = this->root;
-
-    if (this->root->folha)
-      this->root = NULL;
+    if (root->folha)
+      this->root = -1;
     else
-      this->root = this->root->filhos[0];
+      this->root = root->filhos[0];
+    
+    bin_remove(this->tree, root->posic_arquivo, 0);
 
-    destroy_node(tmp, NULL);
+    // destroy_node(tmp, NULL);
   }
   
   return retorno;
@@ -165,12 +182,12 @@ void *bt_remove(BTree_t _this, char *chave) {
 
 bool bt_is_empty(BTree_t _this) {
   struct BTree_t * this = (struct BTree_t *) _this;
-  return (this->root == NULL);
+  return (this->root == -1);
 }
 
-Lista_t bt_range_search(BTree_t _this, char *chave_min, char *chave_max){
+/*Lista_t bt_range_search(BTree_t _this, char *chave_min, char *chave_max){
   struct BTree_t* this = _this;
   Lista_t lista = lt_create();
   range_search_recursive(this->root, chave_min, chave_max, lista);
   return lista;
-}
+}*/

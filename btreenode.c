@@ -16,27 +16,27 @@ BTreeNode_t create_node( bool folha) {
 
 void destroy_node(BTreeNode_t this, void *_destruir_item) {
   return;
-  void (*destruir_item)(void *item) = (void (*)(void *)) _destruir_item;
+  // void (*destruir_item)(void *item) = (void (*)(void *)) _destruir_item;
 
-  if (this->folha == false)
-    for (int i = 0; i < this->numero_filhos; i++)
-      destroy_node(this->filhos[i], destruir_item);
+  // if (this->folha == false)
+  //   for (int i = 0; i < this->numero_filhos; i++)
+  //     destroy_node(this->filhos[i], destruir_item);
 
-  free(this->filhos);
+  // free(this->filhos);
 
-  int tam = 2 * this->grau - 1;
-  for (int i = 0; i < tam; i++) {
-    if (this->chaves[i] == NULL) break;
+  // int tam = 2 * this->grau - 1;
+  // for (int i = 0; i < tam; i++) {
+  //   if (this->chaves[i] == NULL) break;
 
-    if (destruir_item)
-      destruir_item(this->chaves[i]->valor);
+  //   if (destruir_item)
+  //     destruir_item(this->chaves[i]->valor);
 
-    free(this->chaves[i]);
-  }
+  //   free(this->chaves[i]);
+  // }
 
-  free(this->chaves);
+  // free(this->chaves);
 
-  free(this);
+  // free(this);
 }
 
 bool is_full_node(BTreeNode_t this) {
@@ -82,7 +82,7 @@ void *search_node(BTreeNode_t this, char *chave, int (*compare)(void *this, void
   return item;
 }
 
-void split_child_node(BTreeNode_t this, int indice, BTreeNode_t child) {
+void split_child_node(BTreeNode_t this, int indice, BTreeNode_t child, Arquivo tree) {
 
   // Cria um novo no que vai guardar this->grau - 1 valores
   BTreeNode_t novo_node = create_node(child->folha);
@@ -107,7 +107,9 @@ void split_child_node(BTreeNode_t this, int indice, BTreeNode_t child) {
   }
 
   // Colocar o novo filho em this
-  this->filhos[indice + 1] = novo_node;
+  this->filhos[indice + 1] = bin_get_free_block(tree);
+  novo_node->posic_arquivo = this->filhos[indice + 1];
+  bin_insert(tree, novo_node, this->filhos[indice + 1]);
 
   // Achar a posicao e mover os valores da chave de child
   for (int j = this->numero_filhos - 1; j >= indice; j--)
@@ -121,7 +123,7 @@ void split_child_node(BTreeNode_t this, int indice, BTreeNode_t child) {
 
 }
 
-void insert_non_full_node(BTreeNode_t this, char *chave, void *valor) {
+void insert_non_full_node(BTreeNode_t this, char *chave, void *valor, int (*compare)(void *this, void *other), Arquivo tree, Arquivo itens) {
 
   // Inicializa o indice como elemento mais a direita
   int i = this->numero_filhos - 1;
@@ -131,57 +133,73 @@ void insert_non_full_node(BTreeNode_t this, char *chave, void *valor) {
 
     // Achar o lugar a ser inserido o novo item
     // E mover todos os de valor maior pra frente
-    while (i >= 0 && this->compare(this->chaves[i]->chave, chave) > 0) {
+    while (i >= 0 && compare(this->chaves[i].chave, chave) > 0) {
       this->chaves[i + 1] = this->chaves[i];
       i--;
     }
 
     // Inserir o valor no local encontrado
-    this->chaves[i + 1] = malloc(sizeof(*this->chaves[i + 1]));
-    this->chaves[i + 1]->chave = chave;
-    this->chaves[i + 1]->valor = valor;
+    strcpy(this->chaves[i + 1].chave, chave);
+    this->chaves[i + 1].valor = bin_insert(itens, valor, -1);
     this->numero_filhos++;
   }
 
   // Se nao for uma folha
   else {
     // Achar o filho que tem que ter o novo valor
-    while (i >= 0 && this->compare(this->chaves[i]->chave, chave) > 0)
+    while (i >= 0 && compare(this->chaves[i].chave, chave) > 0)
       i--;
     
     // Se o filho estiver cheio
-    if (is_full_node(this->filhos[i + 1])) {
-      split_child_node(this, i + 1, this->filhos[i + 1]);
+    BTreeNode_t filho = bin_get_item(tree, this->filhos[i + 1]);
+    if (is_full_node(filho)) {
+      split_child_node(this, i + 1, filho, tree);
 
       // Depois de mudar, o no vai ser separado em dois
       // Tem que achar em qual dos dois vai o novo valor
-      if (this->compare(this->chaves[i + 1]->chave, chave) < 0)
+      if (compare(this->chaves[i + 1].chave, chave) < 0)
         i++;
+      bin_insert(tree, filho, filho->posic_arquivo);
     }
-    insert_non_full_node(this->filhos[i + 1], chave, valor);
+
+    // Eu abro filho denovo aqui pois o i pode ter mudado
+    BTreeNode_t filho = bin_get_item(tree, this->filhos[i + 1]);
+    insert_non_full_node(filho, chave, valor, compare, tree, itens);
+    bin_insert(tree, filho, filho->posic_arquivo);
   }
 }
 
-int find_key_node(BTreeNode_t this, char *chave) {
+int find_key_node(BTreeNode_t this, char *chave, int (*compare)(void *this, void *other)) {
   int indice = 0;
   while (indice < this->numero_filhos &&
-    this->compare(this->chaves[indice]->chave, chave) < 0)
+    compare(this->chaves[indice].chave, chave) < 0)
     indice++;
 
   return indice;
 }
 
-void *remove_node(BTreeNode_t this, char *chave) {
-  int indice = find_key_node(this, chave);
+// NAO ESQUECER ATUALIZAR O THIS DENTRO DA FUNCAO
+void *remove_node(BTreeNode_t this, char *chave, int (*compare)(void *this, void *other), Arquivo tree, Arquivo itens, bool return_deleted) {
+  int indice = find_key_node(this, chave, compare);
 
   // Se a chave estiver nesse no
   if (indice < this->numero_filhos &&
-    this->compare(this->chaves[indice]->chave, chave) == 0) {
+    compare(this->chaves[indice].chave, chave) == 0) {
     
-    if (this->folha)
-      return remove_from_leaf_node(this, indice);
-    else
-      return remove_from_non_leaf_node(this, indice);
+    if (this->folha){
+      void *item = NULL;
+      item = remove_from_leaf_node(this, indice, tree, itens, return_deleted);
+      if(this->posic_arquivo != -1)
+        bin_insert(tree, this, this->posic_arquivo);
+      return item;
+    }
+    else{
+      void *item = NULL;
+      item = remove_from_non_leaf_node(this, indice, compare, tree, itens, return_deleted);
+      if(this->posic_arquivo != -1)
+        bin_insert(tree, this, this->posic_arquivo);
+      return item;
+    }
   }
 
   // Se nao estiver nesse no, procurar nos filhos
@@ -193,132 +211,213 @@ void *remove_node(BTreeNode_t this, char *chave) {
       return NULL;
     }
 
-    // A flag indice se o item esta no ultimo filho desse no
+    // A flag indica se o item esta no ultimo filho desse no
     bool flag = ( indice == this->numero_filhos );
 
     // Se o filho que o valor supostamente esta tem menos que o grau minimo, tem que preencher ele
-    if (this->filhos[indice]->numero_filhos < this->grau)
-      fill_node(this, indice);
+    BTreeNode_t filho = bin_get_item(tree, this->filhos[indice]);
+    if (filho->numero_filhos < GRAU)
+      fill_node(this, indice, tree);
 
-    if (flag && indice > this->numero_filhos)
-      return remove_node(this->filhos[indice - 1], chave);
-    else
-      return remove_node(this->filhos[indice],     chave);
+    if (flag && indice > this->numero_filhos){
+      free(filho);
+      filho = bin_get_item(tree, this->filhos[indice - 1]);
+      void *item = remove_node(filho, chave, compare, tree, itens, 1);
+      if(filho->posic_arquivo != -1)
+        bin_insert(tree, filho, filho->posic_arquivo);
+      free(filho);
+      return item;
+    }
+    else{
+      free(filho);
+      filho = bin_get_item(tree, this->filhos[indice]);
+      void *item = remove_node(this->filhos[indice], chave, compare, tree, itens, 1);
+      if(filho->posic_arquivo != -1)
+        bin_insert(tree, filho, filho->posic_arquivo);
+        free(filho);
+      return item;
+    }
     
   }
 
 }
 
-void *remove_from_leaf_node(BTreeNode_t this, int indice) {
-  void *retorno = this->chaves[indice]->valor;
+void *remove_from_leaf_node(BTreeNode_t this, int indice, Arquivo tree, Arquivo itens, bool return_deleted) {
+  void *retorno = NULL;
+  if(return_deleted)
+    retorno = bin_remove(itens, this->chaves[indice].valor, 1);
+  
 
-  free(this->chaves[indice]);
+  // free(this->chaves[indice]);
 
   for (int i = indice + 1; i < this->numero_filhos; i++) {
     this->chaves[i - 1] = this->chaves[i];
   }
 
   this->numero_filhos--;
+  bin_insert(tree, this, this->posic_arquivo);
 
   return retorno;
 }
 
-void *remove_from_non_leaf_node(BTreeNode_t this, int indice) {
+void *remove_from_non_leaf_node(BTreeNode_t this, int indice, int (*compare)(void *this, void *other), Arquivo tree, Arquivo itens, bool return_deleted) {
+  // Se o return deleted é 0, também significa que eu não quero tirar o item do arquivo
+  BTreeNode_t filho_indice = bin_get_item(tree, this->filhos[indice]);
+  if (filho_indice->numero_filhos >= GRAU) {
+    BTreeNode_t pred = get_predecessor_node(this, indice, tree);
 
-  if (this->filhos[indice]->numero_filhos >= this->grau) {
-    BTreePair_t pred = get_predecessor_node(this, indice);
-    free(this->chaves[indice]);
-    this->chaves[indice] = pred;
-    return remove_node(this->filhos[indice], pred->chave);
+    // free(this->chaves[indice]);
+    void *item = NULL;
+    
+    item = bin_remove(itens, this->chaves[indice].valor, 1);
+
+    this->chaves[indice].valor = pred->chaves[pred->numero_filhos - 1].valor;
+    strcpy(this->chaves[indice].chave, pred->chaves[pred->numero_filhos - 1].chave);
+    
+    remove_node(this->filhos[indice], pred->chaves[pred->numero_filhos].chave, compare, tree, itens, 0);
+    free(pred);
+    free(filho_indice);
+    return item;
   }
 
-  else if (this->filhos[indice + 1]->numero_filhos >= this->grau) {
-    BTreePair_t succ = get_successor_node(this, indice);
-    free(this->chaves[indice]);
-    this->chaves[indice] = succ;
-    return remove_node(this->filhos[indice + 1], succ->chave);
+  else{
+    free(filho_indice);
+    filho_indice = bin_get_item(tree, this->filhos[indice + 1]);
+    if (filho_indice->numero_filhos >= GRAU) {
+      BTreeNode_t succ = get_successor_node(this, indice, tree);
+
+      
+      void *item = bin_remove(itens, this->chaves[indice].valor, 1);
+      // free(this->chaves[indice]);
+      
+
+      this->chaves[indice].valor = succ->chaves[0].valor;
+      strcpy(this->chaves[indice].chave, succ->chaves[0].chave);
+
+
+      remove_node(filho_indice, succ->chaves[0].chave, compare, tree, itens, 0);
+      bin_insert(tree, filho_indice, filho_indice->posic_arquivo);
+      free(filho_indice);
+      free(succ);
+      return item;
+    }
+    else {
+      char chave[30];
+      strcpy(chave, this->chaves[indice].chave);
+      merge_node(this, indice, tree);
+
+      free(filho_indice);
+      BTreeNode_t filho = bin_get_item(tree, this->filhos[indice]);
+      void *item = remove_node(filho, chave, compare, tree, itens, 1);
+      bin_insert(tree, filho, filho->posic_arquivo);
+      return item;
+    }
   }
 
-  else {
-    char *chave = this->chaves[indice]->chave;
-    merge_node(this, indice);
-    return remove_node(this->filhos[indice], chave);
-  }
 }
 
-BTreePair_t get_predecessor_node(BTreeNode_t this, int indice) {
+BTreeNode_t get_predecessor_node(BTreeNode_t this, int indice, Arquivo tree) {
   // Sempre pega o ultimo dos filhos até chegar numa folha
-  BTreeNode_t cur = this->filhos[indice];
-  while (cur->folha == false)
-    cur = cur->filhos[cur->numero_filhos];
+  int atual = this->filhos[indice];
+  BTreeNode_t cur = bin_get_item(tree, atual);
+
+  while (cur->folha == false){
+
+    atual = cur->filhos[cur->numero_filhos];
+    free(cur);
+    cur = bin_get_item(tree, atual);
+  }
 
   // Retorna o ultimo da folha
-  return cur->chaves[cur->numero_filhos - 1];
+  return cur;
 }
 
-BTreePair_t get_successor_node(BTreeNode_t this, int indice) {
+BTreeNode_t get_successor_node(BTreeNode_t this, int indice, Arquivo tree) {
   // Sempre pega o primeiro dos filhos até chegar numa folha
-  BTreeNode_t cur = this->filhos[indice + 1];
-  while (cur->folha == false)
-    cur = cur->filhos[0];
+  int atual = this->filhos[indice + 1];
+  BTreeNode_t cur = bin_get_item(tree, atual);
+  
+  while (cur->folha == false){
+
+    atual = cur->filhos[0];
+    free(cur);
+    cur = bin_get_item(tree, atual);
+  }
 
   // Retorna o primeiro da folha
-  return cur->chaves[0];
+  return cur;
 }
 
-void fill_node(BTreeNode_t this, int indice) {
-
-  if (indice != 0 && this->filhos[indice - 1]->numero_filhos >= this->grau)
-    borrow_from_prev_node(this, indice);
-
-  else if (indice != this->numero_filhos && this->filhos[indice + 1]->numero_filhos >= this->grau)
-    borrow_from_next_node(this, indice);
-
-  else {
-    if (indice != this->numero_filhos)
-      merge_node(this, indice);
-    else
-      merge_node(this, indice - 1);
+void fill_node(BTreeNode_t this, int indice, Arquivo tree) {
+  BTreeNode_t filho = bin_get_item(tree, this->filhos[indice - 1]);
+  if (indice != 0 && filho->numero_filhos >= GRAU){
+    borrow_from_prev_node(this, indice, tree);
+    free(filho);
+  }
+  else{
+    free(filho);
+    filho = bin_get_item(tree, this->filhos[indice + 1]);
+    if (indice != this->numero_filhos && filho->numero_filhos >= GRAU){
+      borrow_from_next_node(this, indice, tree);
+      free(filho);
+    }
+    else {
+      if (indice != this->numero_filhos)
+        merge_node(this, indice, tree);
+      else
+        merge_node(this, indice - 1, tree);
+    }
   }
 }
 
-void borrow_from_prev_node(BTreeNode_t this, int indice) {
-  BTreeNode_t filho = this->filhos[indice];
-  BTreeNode_t irmao = this->filhos[indice - 1];
+void borrow_from_prev_node(BTreeNode_t this, int indice, Arquivo tree) {
+  BTreeNode_t filho = bin_get_item(tree, this->filhos[indice]);
+  BTreeNode_t irmao = bin_get_item(tree, this->filhos[indice - 1]);
 
   // Move todos em this->filhos para a frente
-  for (int i = filho->numero_filhos - 1; i>= 0; i--)
-    filho->chaves[i + 1] = filho->chaves[i];
+  for (int i = filho->numero_filhos - 1; i >= 0; i--){
+    filho->chaves[i + 1].valor = filho->chaves[i].valor;
+    strcpy(filho->chaves[i + 1].chave, filho->chaves[i].chave);
+  }
   
   // Se o filho nao for uma folha, move todos os filhos dele pra frente
   if (filho->folha == false)
     for (int i = filho->numero_filhos; i >= 0; i--)
       filho->filhos[i + 1] = filho->filhos[i];
 
-  filho->chaves[0] = this->chaves[indice - 1];
+  filho->chaves[0].valor = this->chaves[indice - 1].valor;
+  strcpy(filho->chaves[0].chave, this->chaves[indice - 1].chave);
 
   if (filho->folha == false)
     filho->filhos[0] = irmao->filhos[irmao->numero_filhos];
 
-  this->chaves[indice - 1] = irmao->chaves[irmao->numero_filhos - 1];
+  this->chaves[indice - 1].valor = irmao->chaves[irmao->numero_filhos - 1].valor;
+  strcpy(this->chaves[indice - 1].chave, irmao->chaves[irmao->numero_filhos - 1].chave);
 
   filho->numero_filhos += 1;
   irmao->numero_filhos -= 1;
+
+  bin_insert(tree, filho, filho->posic_arquivo);
+  bin_insert(tree, irmao, irmao->posic_arquivo);
+  bin_insert(tree, this, this->posic_arquivo);
 }
 
-void borrow_from_next_node(BTreeNode_t this, int indice) {
-  BTreeNode_t filho = this->filhos[indice];
-  BTreeNode_t irmao = this->filhos[indice + 1];
+void borrow_from_next_node(BTreeNode_t this, int indice, Arquivo tree) {
+  BTreeNode_t filho = bin_get_item(tree, this->filhos[indice]);
+  BTreeNode_t irmao = bin_get_item(tree, this->filhos[indice + 1]);
 
   filho->chaves[filho->numero_filhos] = this->chaves[indice];
 
   if (filho->folha == false)
     filho->filhos[filho->numero_filhos + 1] = irmao->filhos[0];
 
-  this->chaves[indice] = irmao->chaves[0];
+  this->chaves[indice].valor = irmao->chaves[0].valor;
+  strcpy(this->chaves[indice].chave, irmao->chaves[0].chave);
 
-  for (int i = 1; i < irmao->numero_filhos; i++)
-    irmao->chaves[i - 1] = irmao->chaves[i];
+  for (int i = 1; i < irmao->numero_filhos; i++){
+    irmao->chaves[i - 1].valor = irmao->chaves[i].valor;
+    strcpy(irmao->chaves[i - 1].chave, irmao->chaves[i].chave);
+  }
 
   if (irmao->folha == false)
     for (int i = 1; i <= irmao->numero_filhos; i++)
@@ -326,23 +425,30 @@ void borrow_from_next_node(BTreeNode_t this, int indice) {
 
   filho->numero_filhos += 1;
   irmao->numero_filhos -= 1;
+  bin_insert(tree, filho, filho->posic_arquivo);
+  bin_insert(tree, irmao, irmao->posic_arquivo);
+  bin_insert(tree, this, this->posic_arquivo);
 }
 
-void merge_node(BTreeNode_t this, int indice) {
-  BTreeNode_t filho = this->filhos[indice];
-  BTreeNode_t irmao = this->filhos[indice + 1];
+void merge_node(BTreeNode_t this, int indice, Arquivo tree) {
+  BTreeNode_t filho = bin_get_item(tree, this->filhos[indice]);
+  BTreeNode_t irmao = bin_get_item(tree, this->filhos[indice + 1]);
 
-  filho->chaves[this->grau - 1] = this->chaves[indice];
+  filho->chaves[GRAU - 1] = this->chaves[indice];
 
-  for (int i = 0; i < irmao->numero_filhos; i++)
-    filho->chaves[i + this->grau] = irmao->chaves[i];
+  for (int i = 0; i < irmao->numero_filhos; i++){
+    strcpy(filho->chaves[i + GRAU].chave, irmao->chaves[i].chave);
+    filho->chaves[i + GRAU].valor = irmao->chaves[i].valor;
+  }
 
   if (filho->folha == false)
     for (int i = 0; i <= irmao->numero_filhos; i++)
-      filho->filhos[i + this->grau] = irmao->filhos[i];
+      filho->filhos[i + GRAU] = irmao->filhos[i];
 
-  for (int i = indice + 1; i < this->numero_filhos; i++)
-    this->chaves[i - 1] = this->chaves[i];
+  for (int i = indice + 1; i < this->numero_filhos; i++){
+    strcpy(this->chaves[i - 1].chave, this->chaves[i].chave);
+    this->chaves[i - 1].valor = this->chaves[i].valor;
+  }
 
   for (int i = indice + 2; i <= this->numero_filhos; i++)
     this->filhos[i - 1] = this->filhos[i];
@@ -350,10 +456,14 @@ void merge_node(BTreeNode_t this, int indice) {
   filho->numero_filhos += irmao->numero_filhos + 1;
   this->numero_filhos--;
 
-  destroy_node(irmao, NULL);
+  bin_insert(tree, filho, filho->posic_arquivo);
+  bin_remove(tree, irmao->posic_arquivo, 0);
+  free(filho);
+  free(irmao);
+  // destroy_node(irmao, NULL);
 }
 
-void range_search_recursive(BTreeNode_t node, char *chave_min, char *chave_max, Lista_t lista) {
+/*void range_search_recursive(BTreeNode_t node, char *chave_min, char *chave_max, Lista_t lista) {
   
   if (node->folha) {
     int sair = 0;
@@ -407,7 +517,7 @@ void range_search_recursive(BTreeNode_t node, char *chave_min, char *chave_max, 
 
   }
     
-}
+}*/
 
 int intervalo_chave(char *chave , char *chave_min, char *chave_max, int (*compare)(void *this, void *other)) {
   if (compare(chave, chave_min) < 0) {
